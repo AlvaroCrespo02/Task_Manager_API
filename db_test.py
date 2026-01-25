@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy import create_engine, text
 
+
 load_dotenv()
 db_user = os.getenv("DB_USER")
 db_pass = os.getenv("DB_PASSWORD")
@@ -15,17 +16,39 @@ db_url = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
 # engine = create_engine(db_url, echo=True)
 engine = create_engine(db_url)
 
-try:
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT version()"))
-        print("Connected succesfully!")
-        print(f"PostgreSQL version: {result.fetchone()[0]}")
-        query = conn.execute(text("SELECT * FROM cars"))
-        for row in query.fetchall():
-            print(row)
-        # conn.commit() ONLY WHEN MAKING CHANGES
-except Exception as e:
-    print(f"Connection failed: {e}")
+def dbHealthCheck():
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT version()"))
+            print("Connected succesfully!")
+            print(f"PostgreSQL version: {result.fetchone()[0]}")
+            # query = conn.execute(text("SELECT * FROM cars"))
+            # for row in query.fetchall():
+            #     print(row)
+            # conn.commit() ONLY WHEN MAKING CHANGES
+    except Exception as e:
+        print(f"Connection failed: {e}")
 
-engine.dispose()
-print("Engine disposed, all connections closed")
+    engine.dispose()
+    print("Engine disposed, all connections closed")
+
+def checkGarage():
+    garage = []
+    try:
+        with engine.connect() as conn:
+            query = conn.execute(text("SELECT * FROM cars"))
+            for row in query.fetchall():
+                car = {
+                    "Brand" : row[0],
+                    "Model" : row[1],
+                    "Year" : row[2]
+                }
+                garage.append(car)
+            # conn.commit() ONLY WHEN MAKING CHANGES
+    except Exception as e:
+        print(f"Connection failed: {e}")
+
+    engine.dispose()
+    print("Engine disposed, all connections closed")
+    print(garage)
+    return garage
