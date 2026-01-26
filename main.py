@@ -12,9 +12,11 @@ def health_check():
     db_test.dbHealthCheck()
     return {"status": "healthy"}
 
-@app.get("/cars")
-def listCars():
-    garage = db_test.checkGarage()
-    print("List of cars: ", garage)
+@app.get("/tasks")
+def listTasks():
+    taskList = db_test.checkList()
+    print("List of cars: ", taskList)
     # return {"task status": "finished"}
-    return garage
+    return taskList
+
+# Now I have to add functionalities to add and delete objects from the DB
