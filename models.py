@@ -1,7 +1,10 @@
-class Task:
-    def __init__(self, id, title, created, due, done):
-        self.id = id
-        self.title = title
-        self.created = created
-        self.due = due
-        self.done = done
+from sqlalchemy import Integer, String, Date, Boolean, Column
+from database import Base
+
+class Task(Base):
+    __tablename__ = 'tasklist'
+    id = Column(Integer, primary_key=True)
+    task = Column(String, nullable=False)
+    created = Column(Date, nullable=False)
+    due = Column(Date, nullable=True)
+    done = Column(Boolean, nullable=False)
