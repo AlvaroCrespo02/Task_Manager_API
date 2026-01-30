@@ -6,5 +6,9 @@
     <p>Due: {{ task.due }}</p>
     <p>Status: {{ task.done }}</p>
     <hr>
-    <a href="/tests">Back</a>
+    <div class="edit-buttons">
+            <a href="#" class="edit-button">Edit</a>
+            <a href="#" class="edit-button">Delete</a>
+            <a href="/tests" class="edit-button">Back to list</a>
+    </div>
 {% endblock content %}
