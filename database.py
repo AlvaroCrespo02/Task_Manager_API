@@ -19,10 +19,10 @@ Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
 
-
+#Database session dependency function
 def get_db():
-    db = Session()
+    db = Session() #Create a session
     try:
-        yield db
+        yield db #Provide the session to the endpoint, and continues when it's done
     finally:
-        db.close()
+        db.close() #Close the session

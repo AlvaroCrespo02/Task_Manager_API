@@ -1,9 +1,10 @@
 from pydantic import BaseModel, ConfigDict, Field
+from datetime import date
 
 # This is shared for creating and returning tasks
 class TaskBase(BaseModel):
     task: str = Field(min_length=1, max_length=100)
-    due: str = Field(min_length=1, max_length=100)
+    due: date
     done: bool
 
 
@@ -16,4 +17,4 @@ class TaskResponse(TaskBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    created: str
+    created: date

@@ -1,11 +1,16 @@
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Depends
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from schemas import TaskCreate, TaskResponse
+from sqlalchemy.orm import Session
+from database import Base, engine, get_db
+from models import Task
+from datetime import date
 
 app = FastAPI()
+Base.metadata.create_all(engine)
 templates = Jinja2Templates(directory="templates")
 
 # Mock data
@@ -53,29 +58,44 @@ def list_tasks(request: Request, task_id: int):
         detail="Post was not found"
         )
 
+@app.get("/api/dbhealth")
+def check_db(db: Session = Depends(get_db)):
+    return {"status": "db connection OK"}
+
 @app.get("/api/tasks", response_model=list[TaskResponse])
-def get_tasks():
-    return tasks
+def listTasks(db: Session = Depends(get_db)):
+    taskList = db.query(Task).all()
+    return taskList
 
 @app.post("/api/tasks", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-def create_task(task: TaskCreate):
-    new_id = max(t["id"] for t in tasks) + 1 if tasks else 1
-    new_task = {
-        "id": new_id,
-        "task": task.task, 
-        "created": "2026-01-30", 
-        "due": task.due, 
-        "done": task.done
-    }
-    tasks.append(new_task)
+def create_task(task: TaskCreate, db: Session= Depends(get_db)):
+    new_task = Task(
+        task = task.task,
+        created = date.today(),
+        due = task.due,
+        done = task.done
+    )
+    db.add(new_task)
+    db.commit()
     return new_task
+
+@app.get("/api/tasks/{task_id}/delete", status_code=status.HTTP_200_OK)
+def deleteTask(task_id: int, db: Session = Depends(get_db)):
+    print("Task ID: ", task_id)
+    myTask = db.query(Task).get(task_id)
+    if myTask is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    db.delete(myTask)
+    db.commit()
+    return {"Message": "Entry deleted"}
+    
 
 @app.get("/api/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: int):
     for task in tasks:
         if task.get("id") == task_id:
             return task
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
 # This deals with the Starlette exceptions
 @app.exception_handler(StarletteHTTPException)
