@@ -1,0 +1,29 @@
+{% extends "layout.html" %}    
+{# {% block content %}
+    <h2>Iterate over dictionary values</h2>
+    {% for task in tasks %}
+        <h3>{{ task.task }}</h3>
+        <p>Id: {{ task.id }}</p>
+        <p>Created: {{ task.created }}</p>
+        <p>Due: {{ task.due }}</p>
+        <p>Status: {{ task.done }}</p>
+        <hr>
+    {% endfor %}
+{% endblock content %} #}
+
+{% block content %}
+    <h2>This is a list with your current tasks</h2>
+    <hr>
+    {% for task in tasks %}
+        <h3>{{ task.task }}</h3>
+        <p>Status:
+            {% if task.done == True %}
+                Finished
+            {% else %}
+                Unfinished
+            {% endif %}
+        </p>
+        <a href="/tests/{{ task.id }}">Details</a>
+        <hr>
+    {% endfor %}
+{% endblock content %}

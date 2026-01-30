@@ -1,0 +1,10 @@
+{% extends "layout.html" %}    
+{% block content %}
+    <h2>{{ task.task }}</h2>
+    <p>Id: {{ task.id }}</p>
+    <p>Created: {{ task.created }}</p>
+    <p>Due: {{ task.due }}</p>
+    <p>Status: {{ task.done }}</p>
+    <hr>
+    <a href="/tests">Back</a>
+{% endblock content %}
