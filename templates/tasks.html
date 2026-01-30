@@ -4,7 +4,7 @@
     <hr>
     {% for task in tasks %}
         <h3>
-            <a href="/tests/{{ task.id }}">{{ task.task }}</a>
+            <a href="/tasks/{{ task.id }}">{{ task.task }}</a>
         </h3>
         <p>Status:
             {% if task.done == True %}
