@@ -1,0 +1,13 @@
+Things to do next:
+-schemas.py ended up being a file to test stuff. 
+    I gotta move the endpoints back to main and 
+    add the actual schema in schema.py
+
+-Currently working with mock data. Gotta add db
+    functionalities.
+
+-Authentication. Login and register 
+    functionalities with JWT
+
+-Update the html. Currently working with very
+    basic HTML, so I gotta add styling.
