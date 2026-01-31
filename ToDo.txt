@@ -1,11 +1,14 @@
 Things to do next:
 
--Added db functionalities for creating and
-    deleting tasks from the API side, gotta 
-    work on client side now.
+-Added db functionalities for listing and
+    deleting tasks from the client side.
+    Currently using the wrong HTTP method
+    for deleting, gotta that + the HTML
+    href for the delete button.
 
 -Authentication. Login and register 
     functionalities with JWT
 
 -Update the html. Currently working with very
-    basic HTML, so I gotta add styling.
+    basic HTML, so I gotta add styling and
+    maybe JS to improve functionality.
