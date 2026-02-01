@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from dotenv import load_dotenv
 import os
 
@@ -13,11 +13,14 @@ db_url = (
     f"{os.getenv('DB_NAME')}"
 )
 
-# Create database connection
+# Create database connection and session
 engine = create_engine(db_url, echo=True)
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(autocimmit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+# Base = declarative_base() This is the "old" way of doing things. Instead we do
+
+class Base(DeclarativeBase):
+    pass
 
 #Database session dependency function
 def get_db():
