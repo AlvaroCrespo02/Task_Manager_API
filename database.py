@@ -15,7 +15,7 @@ db_url = (
 
 # Create database connection and session
 engine = create_engine(db_url, echo=True)
-Session = sessionmaker(autocimmit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base = declarative_base() This is the "old" way of doing things. Instead we do
 
@@ -24,8 +24,10 @@ class Base(DeclarativeBase):
 
 #Database session dependency function
 def get_db():
-    db = Session() #Create a session
-    try:
-        yield db #Provide the session to the endpoint, and continues when it's done
-    finally:
-        db.close() #Close the session
+    with SessionLocal() as db:
+        yield db   
+    # db = Session() #Create a session
+    # try:
+    #     yield db #Provide the session to the endpoint, and continues when it's done
+    # finally:
+    #     db.close() #Close the session

@@ -1,13 +1,12 @@
 Things to do next:
 
--Added db functionalities for listing and
-    deleting tasks from the client side.
-    Currently using the wrong HTTP method
-    for deleting, gotta that + the HTML
-    href for the delete button.
+-Remake the db functionalities. Remade the whole
+    database. Gotta check that all the endpoints 
+    work properly.
+
 
 -Authentication. Login and register 
-    functionalities with JWT
+    functionalities with JWT.
 
 -Update the html. Currently working with very
     basic HTML, so I gotta add styling and
