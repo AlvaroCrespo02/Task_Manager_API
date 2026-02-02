@@ -1,8 +1,9 @@
 Things to do next:
 
--Remake the db functionalities. Remade the whole
-    database. Gotta check that all the endpoints 
-    work properly.
+-DB actions:
+    Create: Done
+    Delete: API + Client
+    Update: API + Client
 
 
 -Authentication. Login and register 

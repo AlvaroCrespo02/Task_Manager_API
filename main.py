@@ -26,6 +26,20 @@ templates = Jinja2Templates(directory="templates")
 
 # USER ENDPOINTS
 
+@app.get("/users/{user_id}/tasks", include_in_schema=False, name="user_tasks")
+def user_task_list(request: Request, user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    
+    result = db.execute(select(Task).where(Task.user_id == user_id))
+    tasks = result.scalars().all()
+    return templates.TemplateResponse(
+        request, "tasks.html",
+        {"tasks": tasks, "user": user, "title": f"{user.username}'s Tasks"}
+    )
+
 @app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def api_create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(User).where(User.username == user.username))
@@ -74,19 +88,6 @@ def api_get_user_tasks(user_id: int, db: Annotated[Session, Depends(get_db)]):
     tasks = result.scalars().all()
     return tasks
 
-@app.get("/users/{user_id}/tasks", include_in_schema=False, name="user_tasks")
-def user_task_list(request: Request, user_id: int, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
-    
-    result = db.execute(select(Task).where(Task.user_id == user_id))
-    tasks = result.scalars().all()
-    return templates.TemplateResponse(
-        request, "tasks.html",
-        {"tasks": tasks, "user": user, "title": f"{user.username}'s Tasks"}
-    )
 
 # TASK ENDPOINTS
 
