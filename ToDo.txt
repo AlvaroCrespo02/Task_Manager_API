@@ -1,8 +1,8 @@
 Things to do next:
 
--DB actions:
+-Missing DB actions:
     Create: Done
-    Delete: API + Client
+    Delete: Client
     Update: API + Client
 
 

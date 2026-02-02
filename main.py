@@ -159,17 +159,6 @@ def api_create_task(task: TaskCreate, db: Annotated[Session, Depends(get_db)]):
     db.refresh(new_task)
     return new_task
 
-# GOTTA REMAKE THIS ONE TOO
-# @app.delete("/api/tasks/{task_id}", status_code=status.HTTP_200_OK)
-# def api_delete_task(task_id: int, db: Session = Depends(get_db)):
-#     myTask = db.query(Task).get(task_id)
-#     if myTask is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-#     db.delete(myTask)
-#     db.commit()
-#     return {"Message": "Entry deleted"}
-    
-
 @app.get("/api/tasks/{task_id}", response_model=TaskResponse)
 def api_get_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(Task).where(Task.id == task_id))
@@ -177,6 +166,16 @@ def api_get_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
     if task:
             return task
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+@app.delete("/api/tasks/{task_id}", status_code=status.HTTP_200_OK)
+def api_delete_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(Task).where(Task.id == task_id))
+    task = result.scalars().first()
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    db.delete(task)
+    db.commit()
+    return {"Message": "Entry deleted"}
 
 # This deals with the Starlette exceptions
 @app.exception_handler(StarletteHTTPException)
