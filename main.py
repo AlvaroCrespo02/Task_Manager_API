@@ -96,12 +96,12 @@ def root(request: Request):
                                       "index.html", 
                                       {"title": "Home"})
 
-@app.get("/tasks", include_in_schema=False)
-def task_page(request: Request, db: Annotated[Session, Depends(get_db)]):
+@app.get("/tasks", include_in_schema=False, response_model=list[TaskResponse])
+def list_tasks(request: Request, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(Task))
     tasks = result.scalars().all()
     return templates.TemplateResponse(request, 
-                                      "index.html", 
+                                      "tasks.html", 
                                       {"tasks":tasks, "title": "Home"})
 
 @app.get("/tasks/{task_id}", include_in_schema=False)
