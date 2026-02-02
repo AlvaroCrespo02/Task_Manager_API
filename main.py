@@ -71,7 +71,7 @@ def api_get_user_tasks(user_id: int, db: Annotated[Session, Depends(get_db)]):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     result = db.execute(select(Task).where(Task.user_id == user_id))
-    tasks = result.scalars().first()
+    tasks = result.scalars().all()
     return tasks
 
 @app.get("/users/{user_id}/tasks", include_in_schema=False, name="user_tasks")

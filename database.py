@@ -14,7 +14,8 @@ db_url = (
 )
 
 # Create database connection and session
-engine = create_engine(db_url, echo=True)
+# engine = create_engine(db_url, echo=True)
+engine = create_engine(db_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base = declarative_base() This is the "old" way of doing things. Instead we do
