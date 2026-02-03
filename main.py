@@ -67,6 +67,16 @@ def api_create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
 
     return new_user
 
+@app.delete("/api/user/{user_id}", status_code=status.HTTP_200_OK)
+def api_delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    db.delete(user)
+    db.commit()
+    return {"Message": "User deleted"}
+
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 def api_get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(User).where(User.id == user_id))
@@ -118,10 +128,11 @@ def list_tasks(request: Request, task_id: int, db: Annotated[Session, Depends(ge
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
 # GOTTA REMAKE THIS ONE SINCE IT BROKE DOWN
-# @app.get("/tasks/{task_id}", status_code=status.HTTP_200_OK, include_in_schema=False)
-# def delete_task(request: Request, task_id: int, db: Session = Depends(get_db)):
-#     task = db.query(Task).get(task_id)
-#     if task is None:
+# @app.delete("/tasks/{task_id}", status_code=status.HTTP_200_OK, include_in_schema=False)
+# def delete_task(request: Request, task_id: int, db: Annotated[Session, Depends(get_db)]):
+#     result = db.execute(select(Task).where(Task.id == task_id))
+#     task = result.scalars().first()
+#     if not task:
 #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 #     db.delete(task)
 #     db.commit()
