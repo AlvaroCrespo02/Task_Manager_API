@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from schemas import TaskCreate, TaskResponse, UserCreate, UserResponse
+from schemas import TaskCreate, TaskResponse, TaskUpdate, UserCreate, UserResponse
 
 from typing import Annotated
 from sqlalchemy import select
@@ -178,7 +178,49 @@ def api_get_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
             return task
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
-@app.delete("/api/tasks/{task_id}", status_code=status.HTTP_200_OK)
+# FULL TASK UPDATE
+@app.put("/api/tasks/{task_id}", response_model=TaskResponse)
+def api_update_task(task_id: int, task_data: TaskCreate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(Task).where(Task.id == task_id))
+    task = result.scalars().first()
+
+    if not task:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    if task_data.user_id != task.user_id:
+        result = db.execute(select(User).where(User.id == task_data.user_id))
+        user = result.scalars().first()
+
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+    task.task = task_data.task
+    task.due = task_data.due
+    task.done = task_data.done
+    task.user_id = task_data.user_id
+
+    db.commit()
+    db.refresh(task)
+    return task
+
+# PARTIAL TASK UPDATE
+@app.patch("/api/tasks/{task_id}", response_model=TaskResponse)
+def api_partial_update_task(task_id: int, task_data: TaskUpdate, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(Task).where(Task.id == task_id))
+    task = result.scalars().first()
+
+    if not task:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    update_data = task_data.model_dump(exclude_unset=True) # This takes ONLY the fields that have content
+    for field, value in update_data.items():
+        setattr(task, field, value)
+
+    db.commit()
+    db.refresh(task)
+    return task
+    
+
+@app.delete("/api/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def api_delete_task(task_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(Task).where(Task.id == task_id))
     task = result.scalars().first()

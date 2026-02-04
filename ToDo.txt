@@ -3,7 +3,7 @@ Things to do next:
 -Missing DB actions:
     Create: Done
     Delete: Client
-    Update: API + Client
+    Update: Client
 
 
 -Authentication. Login and register 
