@@ -1,9 +1,8 @@
 Things to do next:
 
 -Missing DB actions:
-    Create: Done
-    Delete: Client
-    Update: Client
+    Full CRUD achieved for API, Client still
+    missing Delete and Update
 
 
 -Authentication. Login and register 
