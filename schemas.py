@@ -27,6 +27,12 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     user_id : int #Temporary for testing
 
+class TaskUpdate(BaseModel):
+    task: str | None = Field(default=None, min_length=1, max_length=100)
+    due: datetime | None = Field(default=None)
+    done: bool | None = Field(default=None)
+
+
 # The schema for returning tasks needs extra stuff
 class TaskResponse(TaskBase):
     model_config = ConfigDict(from_attributes=True)
