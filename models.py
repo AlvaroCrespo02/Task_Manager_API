@@ -14,7 +14,9 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     image_file: Mapped[str | None] = mapped_column(String(200), nullable=True, default=None)
-    tasklist: Mapped[list[Task]] = relationship("Task", back_populates="author")
+
+    # Cascade delete every task linked to a user once deleted
+    tasklist: Mapped[list[Task]] = relationship("Task", back_populates="author", cascade="all, delete-orphan")
 
     @property
     def image_path(self) -> str:

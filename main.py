@@ -99,15 +99,17 @@ def api_update_user(user_id: int, user_update: UserUpdate, db: Annotated[Session
     db.refresh(user)
     return user
 
-@app.delete("/api/user/{user_id}", status_code=status.HTTP_200_OK)
+@app.delete("/api/user/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def api_delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
+
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
     db.delete(user)
     db.commit()
-    return {"Message": "User deleted"}
+    return {"Message": "User and tasks deleted"}
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 def api_get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
