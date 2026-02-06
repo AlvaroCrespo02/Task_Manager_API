@@ -11,3 +11,6 @@ Things to do next:
 -Update the html. Currently working with very
     basic HTML, so I gotta add styling and
     maybe JS to improve functionality.
+
+-Cleanup code:
+    Delete useless comments and add new ones
