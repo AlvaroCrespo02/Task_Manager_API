@@ -40,6 +40,18 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 
+@app.get("/", include_in_schema=False, name="root")
+async def root(request: Request):
+    return templates.TemplateResponse(request, 
+                                      "index.html", 
+                                      {"title": "Home"})
+
+@app.get("/tests", include_in_schema=False, name="tests")
+async def root(request: Request):
+    return templates.TemplateResponse(request, 
+                                      "createTask.html", 
+                                      {"title": "Create"})
+
 # USER ENDPOINTS
 
 @app.get("/users/{user_id}/tasks", include_in_schema=False, name="user_tasks")
@@ -58,12 +70,6 @@ async def user_task_list(request: Request, user_id: int, db: Annotated[AsyncSess
 
 
 # TASK ENDPOINTS
-
-@app.get("/", include_in_schema=False, name="root")
-async def root(request: Request):
-    return templates.TemplateResponse(request, 
-                                      "index.html", 
-                                      {"title": "Home"})
 
 @app.get("/tasks", include_in_schema=False, response_model=list[TaskResponse])
 async def list_tasks(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):

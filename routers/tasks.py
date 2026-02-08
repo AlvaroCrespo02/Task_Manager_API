@@ -13,7 +13,11 @@ router = APIRouter()
 
 @router.get("", response_model=list[TaskResponse])
 async def api_list_tasks(db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(Task).options(selectinload(Task.author)))
+    result = await db.execute(
+         select(Task)
+         .options(selectinload(Task.author))
+         .order_by(Task.created.desc())
+    )
     tasks = result.scalars().all()
     return tasks
 
