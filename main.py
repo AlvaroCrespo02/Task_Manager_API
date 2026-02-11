@@ -8,7 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 
-from schemas import TaskCreate, TaskResponse, TaskUpdate, UserCreate, UserResponse, UserUpdate
+from schemas import TaskResponse
 
 from typing import Annotated
 from sqlalchemy import select
