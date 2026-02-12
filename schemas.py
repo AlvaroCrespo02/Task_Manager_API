@@ -38,7 +38,7 @@ class TaskBase(BaseModel):
 
 # The schema for creating tasks stays the same
 class TaskCreate(TaskBase):
-    user_id : int #Temporary for testing
+    pass
 
 class TaskUpdate(BaseModel):
     task: str | None = Field(default=None, min_length=1, max_length=100)

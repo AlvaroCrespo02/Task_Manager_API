@@ -9,6 +9,8 @@ from models import Task, User
 from database import get_db
 from schemas import TaskCreate, TaskResponse, TaskUpdate
 
+from auth import CurrentUser
+
 router = APIRouter()
 
 @router.get("", response_model=list[TaskResponse])
@@ -18,18 +20,13 @@ async def api_list_tasks(db: Annotated[AsyncSession, Depends(get_db)]):
     return tasks
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
-async def api_create_task(task: TaskCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(User).where(User.id == task.user_id))
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+async def api_create_task(task: TaskCreate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     
     new_task = Task(
         task = task.task,
         due = task.due,
         done = task.done,
-        user_id = user.id
+        user_id = current_user.id
     )
     db.add(new_task)
     await db.commit()
@@ -46,23 +43,19 @@ async def api_get_task(task_id: int, db: Annotated[AsyncSession, Depends(get_db)
 
 # FULL TASK UPDATE
 @router.put("/{task_id}", response_model=TaskResponse)
-async def api_update_task(task_id: int, task_data: TaskCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def api_update_task(task_id: int, task_data: TaskCreate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(Task).options(selectinload(Task.author)).where(Task.id == task_id))
     task = result.scalars().first()
 
     if not task:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
     
-    if task_data.user_id != task.user_id:
-        result = db.execute(select(User).where(User.id == task_data.user_id))
-        user = result.scalars().first()
+    if task.user_id != current_user.id:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
-        if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
     task.task = task_data.task
     task.due = task_data.due
     task.done = task_data.done
-    task.user_id = task_data.user_id
 
     await db.commit()
     await db.refresh(task, attribute_names=["author"]) #This does a refresh and loads the author relatioship
@@ -70,12 +63,15 @@ async def api_update_task(task_id: int, task_data: TaskCreate, db: Annotated[Asy
 
 # PARTIAL TASK UPDATE
 @router.patch("/{task_id}", response_model=TaskResponse)
-async def api_partial_update_task(task_id: int, task_data: TaskUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = db.execute(select(Task).where(Task.id == task_id))
+async def api_partial_update_task(task_id: int, task_data: TaskUpdate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(Task).where(Task.id == task_id))
     task = result.scalars().first()
 
     if not task:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    if task.user_id != current_user.id:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     
     update_data = task_data.model_dump(exclude_unset=True) # This takes ONLY the fields that have content
     for field, value in update_data.items():
@@ -87,11 +83,15 @@ async def api_partial_update_task(task_id: int, task_data: TaskUpdate, db: Annot
     
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def api_delete_task(task_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def api_delete_task(task_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(Task).where(Task.id == task_id))
     task = result.scalars().first()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-    db.delete(task)
-    db.commit()
+    
+    if task.user_id != current_user.id:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    
+    await db.delete(task)
+    await db.commit()
     return {"Message": "Entry deleted"}
