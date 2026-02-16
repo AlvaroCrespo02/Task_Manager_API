@@ -12,13 +12,17 @@ from schemas import TaskCreate, TaskResponse, TaskUpdate
 from auth import CurrentUser
 
 router = APIRouter()
-
+# ============================================================
+# Task ENDPOINTS
+# ============================================================
+# GET THE LIST OF TASKS
 @router.get("", response_model=list[TaskResponse])
 async def api_list_tasks(db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(Task).options(selectinload(Task.author)))
     tasks = result.scalars().all()
     return tasks
 
+# CREATE A NEW TASK
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 async def api_create_task(task: TaskCreate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     
@@ -33,6 +37,7 @@ async def api_create_task(task: TaskCreate, current_user: CurrentUser, db: Annot
     await db.refresh(new_task, attribute_names=["author"])
     return new_task
 
+# GET SPECIFIC TASK
 @router.get("/{task_id}", response_model=TaskResponse)
 async def api_get_task(task_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(Task).options(selectinload(Task.author)).where(Task.id == task_id))
@@ -81,7 +86,7 @@ async def api_partial_update_task(task_id: int, task_data: TaskUpdate, current_u
     await db.refresh(task, attribute_names=["author"])
     return task
     
-
+# DELETE TASK
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def api_delete_task(task_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(Task).where(Task.id == task_id))

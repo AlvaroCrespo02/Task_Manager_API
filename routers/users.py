@@ -19,8 +19,10 @@ from auth import create_access_token, hash_password, verify_password, CurrentUse
 from config import settings
 
 router = APIRouter()
-# USER ENDPOINTS
-
+# ============================================================
+# User ENDPOINTS
+# ============================================================
+# CREATE NEW USER
 @router.post("", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
 async def api_create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(User).where(func.lower(User.username) == user.username.lower()))
@@ -47,6 +49,7 @@ async def api_create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(
     await db.commit()
     await db.refresh(new_user) #Not strictly neccessary
     return new_user
+
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -104,6 +107,7 @@ async def api_update_user(user_id: int, user_update: UserUpdate, current_user: C
     await db.refresh(user)
     return user
 
+# GET USER INFO
 @router.get("/{user_id}", response_model=UserPublic)
 async def api_get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(User).where(User.id == user_id))
@@ -114,6 +118,7 @@ async def api_get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)
     
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
+# GET TASKS FOR A SPECIFIC USER
 @router.get("/{user_id}/tasks", response_model=list[TaskResponse])
 async def api_get_user_tasks(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(User).where(User.id == user_id))
@@ -125,6 +130,7 @@ async def api_get_user_tasks(user_id: int, db: Annotated[AsyncSession, Depends(g
     tasks = result.scalars().all()
     return tasks
 
+# DELETE USER
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def api_delete_user(user_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     if user_id != current_user.id:
