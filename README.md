@@ -1,0 +1,1 @@
+This is a small backend project to test the FastAPI framework. It is a task manager that uses PostgreSQL for the database, the SQLAlchemy toolkit, Pydantic for validation and JWT for the authentication.
