@@ -6,19 +6,25 @@ import os
 
 load_dotenv()
 
-db_url = (
-    # f"postgresql://{os.getenv('DB_USER')}:"
-    f"postgresql+asyncpg://{os.getenv('DB_USER')}:" #Async DB URL
-    f"{os.getenv('DB_PASSWORD')}@"
-    f"{os.getenv('DB_HOST')}:"
-    f"{os.getenv('DB_PORT')}/"
-    f"{os.getenv('DB_NAME')}"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    if not DATABASE_URL.startswith("postgresql+asyncpg://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+else:
+    DATABASE_URL = (
+        # f"postgresql://{os.getenv('DB_USER')}:"
+        f"postgresql+asyncpg://{os.getenv('DB_USER')}:" #Async DB URL
+        f"{os.getenv('DB_PASSWORD')}@"
+        f"{os.getenv('DB_HOST')}:"
+        f"{os.getenv('DB_PORT')}/"
+        f"{os.getenv('DB_NAME')}"
+    )
 
 # Create database connection and session
 # engine = create_engine(db_url, echo=True)
 # engine = create_engine(db_url)
-engine = create_async_engine(db_url)
+engine = create_async_engine(DATABASE_URL)
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
