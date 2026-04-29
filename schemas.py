@@ -32,7 +32,7 @@ class Token(BaseModel):
 # This is shared for creating and returning tasks
 class TaskBase(BaseModel):
     task: str = Field(min_length=1, max_length=100)
-    due: datetime
+    due: datetime | None
     done: bool
 
 
