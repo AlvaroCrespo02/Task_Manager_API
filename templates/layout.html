@@ -8,10 +8,12 @@
     {% else %}
         <title>Task Manager</title>
     {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
 </head>
 <body>
-    {% block content %}
-    
-    {% endblock content %}
+    <div class="content">
+        {% block content %}
+        {% endblock content %}
+    </div>
 </body>
 </html>
