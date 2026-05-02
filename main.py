@@ -33,6 +33,13 @@ app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 templates = Jinja2Templates(directory="templates")
 
 # ============================================================
+# Home route
+# ============================================================
+@app.get("/", include_in_schema=False, name="home")
+async def root(request: Request):
+    return templates.TemplateResponse(request, "home.html")
+
+# ============================================================
 # Exception Handlers
 # ============================================================
 
