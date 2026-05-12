@@ -9,7 +9,7 @@ from fastapi.exception_handlers import http_exception_handler, request_validatio
 
 from database import Base, engine
 
-from routers import api_tasks, api_users
+from routers import api_tasks, api_users, tasks, users
 
 # ============================================================
 # Application Lifespan (Startup / Shutdown)
@@ -24,8 +24,10 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(api_users.router, prefix="/api/users", tags=["users"])
-app.include_router(api_tasks.router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(api_users.router, prefix="/api/users", tags=["api/users"])
+app.include_router(api_tasks.router, prefix="/api/tasks", tags=["api/tasks"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(tasks.router, prefix="/users", tags=["users"])
 
 # ============================================================
 # Jinja2 Templates + StaticFiles
