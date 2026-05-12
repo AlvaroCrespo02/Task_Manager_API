@@ -27,7 +27,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(api_users.router, prefix="/api/users", tags=["api/users"])
 app.include_router(api_tasks.router, prefix="/api/tasks", tags=["api/tasks"])
 app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(tasks.router, prefix="/users", tags=["users"])
+app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 
 # ============================================================
 # Jinja2 Templates + StaticFiles
