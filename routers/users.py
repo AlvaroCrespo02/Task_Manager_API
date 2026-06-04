@@ -30,8 +30,8 @@ templates = Jinja2Templates(directory="templates")
 # CREATE NEW USER
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_user(
-    request: Request, 
-    user: UserCreate, 
+    request: Request,
+    user: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)]
     ):
     result = await db.execute(select(User).where(func.lower(User.username) == user.username.lower()))
@@ -58,15 +58,15 @@ async def create_user(
     await db.commit()
     await db.refresh(new_user) #Not strictly neccessary
     return templates.TemplateResponse(
-        request, 
-        "home.html", 
-        {"message": "User created successfully! You can now log in."}, 
+        request,
+        "home.html",
+        {"message": "User created successfully! You can now log in."},
         status_code=status.HTTP_201_CREATED)
 
 # LOGIN
 @router.post("/token", include_in_schema=False)
 async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[AsyncSession, Depends(get_db)],
     request: Request
     ):
@@ -75,12 +75,19 @@ async def login_for_access_token(
 
     if not user or not verify_password(form_data.password, user.password_hash):
         return templates.TemplateResponse(request, "error.html", {"error":  "Incorrect email or password"}, status_code=status.HTTP_401_UNAUTHORIZED)
-    
+
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(data={"sub":str(user.id)}, expires_delta=access_token_expires)
 
     response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
+    return response
+
+# LOGOUT
+@router.post("/logout", include_in_schema=False)
+async def logout():
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(key="access_token")
     return response
 
 # PARTIAL USER UPDATE
