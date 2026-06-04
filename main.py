@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 
 from contextlib import asynccontextmanager
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
@@ -41,6 +42,10 @@ templates = Jinja2Templates(directory="templates")
 # ============================================================
 @app.get("/", include_in_schema=False, name="home")
 async def root(request: Request):
+    access_token = request.cookies.get("access_token")
+
+    if access_token:
+        return templates.TemplateResponse(request, "login.html")
     return templates.TemplateResponse(request, "home.html")
 
 # ============================================================

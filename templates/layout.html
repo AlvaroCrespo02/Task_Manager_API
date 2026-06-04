@@ -22,8 +22,32 @@
         {% endblock content %}
     </div>
 
-    {% block modal %}
-    {% endblock modal %}
+    {% block loginModal %}
+    {% endblock loginModal %}
+
+    {% block registerModal %}
+    {% endblock registerModal %}
+
+    {% if message %}
+        <!-- NewUser Modal -->
+        <div class="modal fade show" id="userCreated">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Success</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <p>{{ message }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
 
     <div class="navbar navbar-expand-sm bg-dark fixed-bottom">
         <div class="container-fluid">
