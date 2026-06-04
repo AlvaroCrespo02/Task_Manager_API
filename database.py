@@ -24,7 +24,8 @@ else:
 # Create database connection and session
 # engine = create_engine(db_url, echo=True)
 # engine = create_engine(db_url)
-engine = create_async_engine(DATABASE_URL)
+connect_args = {"ssl": "require"} if DATABASE_URL.startswith("postgresql") else {}
+engine = create_async_engine(DATABASE_URL, connect_args=connect_args)
 # SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

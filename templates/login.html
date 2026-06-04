@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block navbar %}
+    <div class="container-fluid">
+        <a class="navbar-brand">TaskManager</a>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <form method="post" action="/users/logout">
+                    <button type="submit" class="btn btn-primary">Logout</button>
+                </form>
+            </li>
+        </ul>
+    </div>
+{% endblock navbar %}
+
+{% block content %}
+    <h1>
+        <a>Log in succesful</a>
+    </h1>
+    <p> This site is currently under construction and functionality can be limited,
+        feel free to check the <a href="/docs">docs</a> for more information.
+    </p>
+
+{% endblock content %}

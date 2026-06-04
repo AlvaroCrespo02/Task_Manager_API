@@ -3,13 +3,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 
 from contextlib import asynccontextmanager
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 
 from database import Base, engine
 
-from routers import tasks, users
+from routers import api_tasks, api_users, tasks, users
 
 # ============================================================
 # Application Lifespan (Startup / Shutdown)
@@ -24,14 +25,16 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(api_users.router, prefix="/api/users", tags=["api/users"])
+app.include_router(api_tasks.router, prefix="/api/tasks", tags=["api/tasks"])
+app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 
 # ============================================================
 # Jinja2 Templates + StaticFiles
 # ============================================================
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # ============================================================
@@ -39,6 +42,10 @@ templates = Jinja2Templates(directory="templates")
 # ============================================================
 @app.get("/", include_in_schema=False, name="home")
 async def root(request: Request):
+    access_token = request.cookies.get("access_token")
+
+    if access_token:
+        return templates.TemplateResponse(request, "login.html")
     return templates.TemplateResponse(request, "home.html")
 
 # ============================================================
