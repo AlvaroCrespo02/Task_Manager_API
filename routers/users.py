@@ -1,6 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -19,12 +22,18 @@ from auth import create_access_token, hash_password, verify_password, CurrentUse
 from config import settings
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="templates")
 # ============================================================
 # User ENDPOINTS
 # ============================================================
 # CREATE NEW USER
-@router.post("", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
-async def api_create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_user(
+    request: Request,
+    user: UserCreate,
+    db: Annotated[AsyncSession, Depends(get_db)]
+    ):
     result = await db.execute(select(User).where(func.lower(User.username) == user.username.lower()))
     existing_user = result.scalars().first()
     if existing_user:
@@ -48,100 +57,55 @@ async def api_create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user) #Not strictly neccessary
-    return new_user
+    return templates.TemplateResponse(
+        request,
+        "home.html",
+        {"message": "User created successfully! You can now log in."},
+        status_code=status.HTTP_201_CREATED)
 
-
-@router.post("/token", response_model=Token)
+# LOGIN
+@router.post("/token", include_in_schema=False)
 async def login_for_access_token(
-     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], 
-     db: Annotated[AsyncSession, Depends(get_db)]
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    request: Request
     ):
     result = await db.execute(select(User).where(func.lower(User.email) == form_data.username.lower()))
     user = result.scalars().first()
 
     if not user or not verify_password(form_data.password, user.password_hash):
-         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password", headers={"WWW-Authenticate": "Bearer"})
-    
+        return templates.TemplateResponse(request, "error.html", {"error":  "Incorrect email or password"}, status_code=status.HTTP_401_UNAUTHORIZED)
+
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
-    acces_token = create_access_token(data={"sub":str(user.id)}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub":str(user.id)}, expires_delta=access_token_expires)
 
-    return Token(access_token=acces_token, token_type="bearer")
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response.set_cookie(key="access_token", value=access_token, httponly=True)
+    return response
 
-@router.get("/me", response_model=UserPrivate)
-async def get_current_user(current_user: CurrentUser):
-    return current_user
+# LOGOUT
+@router.post("/logout", include_in_schema=False)
+async def logout():
+    response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie(key="access_token")
+    return response
 
 # PARTIAL USER UPDATE
-@router.patch("/{user_id}", response_model=UserPrivate)
-async def api_update_user(user_id: int, user_update: UserUpdate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
-
-    if user_id != current_user.id:
-         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-
-    if not user:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    if user_update.username is not None and user_update.username.lower() != user.username.lower():
-         result = await db.execute(select(User).where(func.lower(User.username) == user_update.username.lower()))
-         existing_user = result.scalars().first()
-         if existing_user:
-              raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
-         
-    if user_update.email is not None and user_update.email.lower() != user.email.lower():
-         result = await db.execute(select(User).where(func.lower(User.email) == user_update.email.lower()))
-         existing_email = result.scalars().first()
-         if existing_email:
-              raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    
-    if user_update.username is not None:
-         user.username = user_update.username
-    if user_update.email is not None:
-         user.email = user_update.email.lower()
-    if user_update.image_file is not None:
-         user.image_file = user_update.image_file
-
-    await db.commit()
-    await db.refresh(user)
-    return user
+@router.patch("/{user_id}")
+async def update_user(request: Request):
+    return templates.TemplateResponse(request, "error.html")
 
 # GET USER INFO
-@router.get("/{user_id}", response_model=UserPublic)
-async def api_get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-
-    if user:
-        return user
-    
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+@router.get("/{user_id}")
+async def get_user(request: Request):
+    return templates.TemplateResponse(request, "error.html")
 
 # GET TASKS FOR A SPECIFIC USER
-@router.get("/{user_id}/tasks", response_model=list[TaskResponse])
-async def api_get_user_tasks(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    result = await db.execute(select(Task).options(selectinload(Task.author)).where(Task.user_id == user_id))
-    tasks = result.scalars().all()
-    return tasks
+@router.get("/{user_id}/tasks")
+async def get_user_tasks(request: Request):
+    return templates.TemplateResponse(request, "error.html")
 
 # DELETE USER
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def api_delete_user(user_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
-    if user_id != current_user.id:
-         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
-    
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    await db.delete(user)
-    await db.commit()
-    return {"Message": "User and tasks deleted"}
+@router.delete("/{user_id}")
+async def delete_user(request: Request):
+    return templates.TemplateResponse(request, "error.html")
