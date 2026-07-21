@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.git/
+.github/
+.vscode/
+task_man_venv/
+tests/
+test.db
+*.db
+.env
+.env.*
+README.md
